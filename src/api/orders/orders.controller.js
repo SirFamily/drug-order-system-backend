@@ -59,7 +59,7 @@ const createOrder = async (req, res) => {
     let attachments = [];
     if (req.files) {
       attachments = req.files.map(file => ({
-        fileName: file.originalname,
+        fileName: file.filename, // Use the new filename from multer
         fileUrl: `/public/uploads/${file.filename}`,
         fileType: file.mimetype,
         fileSize: file.size,
@@ -107,11 +107,9 @@ const createOrder = async (req, res) => {
           relatedId: newOrder.id,
         }
       });
-      console.log('Emitting notification:new to pharmacist:', pharmacist.id, notification); // Debug log
       io.to(pharmacist.id).emit('notification:new', notification); // Emit to specific pharmacist
     }
 
-    console.log('Emitting order:created (general update):', newOrder); // Debug log
     io.emit('order:created', newOrder); // Emit WebSocket event for general updates
 
     res.status(201).json(newOrder);
@@ -158,10 +156,8 @@ const updateOrderStatus = async (req, res) => {
         relatedId: updatedOrder.id,
       }
     });
-    console.log('Emitting notification:new to nurse:', updatedOrder.createdById, notification); // Debug log
     io.to(updatedOrder.createdById).emit('notification:new', notification); // Emit to specific nurse
 
-    console.log('Emitting order:updated (general update):', updatedOrder); // Debug log
     io.emit('order:updated', updatedOrder); // Emit WebSocket event for general updates
 
     res.json(updatedOrder);

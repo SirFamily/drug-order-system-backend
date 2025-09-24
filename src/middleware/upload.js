@@ -5,7 +5,10 @@ const path = require('path');
 const storage = multer.diskStorage({
   destination: './public/uploads/',
   filename: function(req, file, cb){
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    const fileType = file.mimetype.startsWith('image') ? 'image' : 'pdf';
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000); // 6-digit random number
+    const uniqueSuffix = Date.now();
+    cb(null, `${fileType}-${uniqueSuffix}${path.extname(file.originalname)}`);
   }
 });
 
