@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  username       String   @unique
+  password       String
+  fullName       String
+  role           Role
+  createdOrders  Order[]  @relation("CreatedOrders")
+  approvedOrders Order[]  @relation("ApprovedOrders")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Regimen {
+  id           String   @id
+  name         String
+  drugs        Json
+  instructions String?  @db.Text
+  sideEffects  Json
+  precautions  Json
+  orders       Order[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Order {
+  id             String       @id @default(cuid())
+  patient        Json
+  cycle          String?
+  totalCycles    String?      // Add totalCycles field
+  startDate      DateTime?
+  completionDate DateTime?
+  status         OrderStatus  @default(PENDING)
+  notes          String?      @db.Text
+  attachments    Json?
+  drugs          Json?        // To store the actual drugs used in the order (edited or custom)
+  
+  regimenId      String
+  regimen        Regimen      @relation(fields: [regimenId], references: [id])
+
+  createdById    String
+  createdBy      User         @relation("CreatedOrders", fields: [createdById], references: [id])
+
+  approvedById   String?
+  approvedBy     User?        @relation("ApprovedOrders", fields: [approvedById], references: [id])
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+enum Role {
+  NURSE
+  PHARMACIST
+}
+
+enum OrderStatus {
+  PENDING
+  REJECTED
+  COMPLETED
+}
