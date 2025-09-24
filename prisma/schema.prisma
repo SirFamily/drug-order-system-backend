@@ -18,6 +18,7 @@ model User {
   role           Role
   createdOrders  Order[]  @relation("CreatedOrders")
   approvedOrders Order[]  @relation("ApprovedOrders")
+  notifications  Notification[] // Add inverse relation for Notification
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -68,4 +69,16 @@ enum OrderStatus {
   PENDING
   REJECTED
   COMPLETED
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  message     String    @db.Text
+  type        String    // e.g., "new_order", "order_status"
+  relatedId   String?   // e.g., orderId, to link back to the source
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
 }

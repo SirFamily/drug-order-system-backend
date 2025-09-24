@@ -88,13 +88,30 @@ const createOrder = async (req, res) => {
     const newOrder = await prisma.order.create({
       data: dataToCreate,
       include: { // Include related data to emit a complete object
-        createdBy: { select: { fullName: true } },
+        createdBy: { select: { fullName: true, role: true } },
         regimen: { select: { name: true } },
       }
     });
 
-    const io = getIo(); // Get the initialized io instance
-    io.emit('order:created', newOrder); // Emit WebSocket event
+    // Create notification for Pharmacists
+    const pharmacists = await prisma.user.findMany({ where: { role: 'PHARMACIST' } });
+    const io = getIo();
+
+    for (const pharmacist of pharmacists) {
+      const notification = await prisma.notification.create({
+        data: {
+          userId: pharmacist.id,
+          message: `คำสั่งยาใหม่ ${newOrder.id} โดย ${newOrder.createdBy.fullName} รอการตรวจสอบ`,
+          type: 'new_order',
+          relatedId: newOrder.id,
+        }
+      });
+      console.log('Emitting notification:new to pharmacist:', pharmacist.id, notification); // Debug log
+      io.to(pharmacist.id).emit('notification:new', notification); // Emit to specific pharmacist
+    }
+
+    console.log('Emitting order:created (general update):', newOrder); // Debug log
+    io.emit('order:created', newOrder); // Emit WebSocket event for general updates
 
     res.status(201).json(newOrder);
   } catch (error) {
@@ -121,14 +138,29 @@ const updateOrderStatus = async (req, res) => {
         approvedById,
       },
       include: {
-        createdBy: { select: { fullName: true } },
+        createdBy: { select: { fullName: true, id: true } },
         approvedBy: { select: { fullName: true } },
         regimen: { select: { name: true } },
       }
     });
 
-    const io = getIo(); // Get the initialized io instance
-    io.emit('order:updated', updatedOrder); // Emit WebSocket event
+    // Create notification for the Nurse who created the order
+    const io = getIo();
+    const notificationMessage = `คำสั่งยา ${updatedOrder.id} ได้รับการ ${updatedOrder.status === 'COMPLETED' ? 'อนุมัติ' : 'ปฏิเสธ'} โดย ${updatedOrder.approvedBy?.fullName || 'เภสัชกร'}`;
+    
+    const notification = await prisma.notification.create({
+      data: {
+        userId: updatedOrder.createdById,
+        message: notificationMessage,
+        type: 'order_status',
+        relatedId: updatedOrder.id,
+      }
+    });
+    console.log('Emitting notification:new to nurse:', updatedOrder.createdById, notification); // Debug log
+    io.to(updatedOrder.createdById).emit('notification:new', notification); // Emit to specific nurse
+
+    console.log('Emitting order:updated (general update):', updatedOrder); // Debug log
+    io.emit('order:updated', updatedOrder); // Emit WebSocket event for general updates
 
     res.json(updatedOrder);
   } catch (error) {

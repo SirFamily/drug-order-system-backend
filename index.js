@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const http = require('http');
 const { Server } = require('socket.io');
 const { setIo } = require('./src/utils/socket');
+const jwt = require('jsonwebtoken'); // Import jwt
 
 dotenv.config();
 
@@ -35,11 +36,35 @@ app.use('/api/regimens', regimenRoutes);
 const orderRoutes = require('./src/api/orders/orders.routes');
 app.use('/api/orders', orderRoutes);
 
+const notificationRoutes = require('./src/api/notifications/notifications.routes');
+app.use('/api/notifications', notificationRoutes);
+
 // Socket.IO connection
 io.on('connection', (socket) => {
   console.log('a user connected:', socket.id);
+
+  // Authenticate user via JWT from handshake query
+  const token = socket.handshake.query.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.userId = decoded.userId; // Attach userId to socket
+      socket.join(decoded.userId); // Make socket join a room named after userId
+      console.log(`User ${decoded.userId} connected and joined room ${decoded.userId}`);
+    } catch (err) {
+      console.error('Socket authentication failed:', err.message);
+      socket.disconnect(); // Disconnect unauthorized socket
+    }
+  } else {
+    console.log('No token provided for socket connection');
+    socket.disconnect();
+  }
+
   socket.on('disconnect', () => {
     console.log('user disconnected:', socket.id);
+    if (socket.userId) {
+      console.log(`User ${socket.userId} left room ${socket.userId}`);
+    }
   });
 });
 
