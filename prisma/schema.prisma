@@ -78,6 +78,7 @@ model Notification {
   type        String    // e.g., "new_order", "order_status"
   relatedId   String?   // e.g., orderId, to link back to the source
   isRead      Boolean   @default(false)
+  readAt      DateTime? // Timestamp when notification was read
   createdAt   DateTime  @default(now())
 
   user        User      @relation(fields: [userId], references: [id])

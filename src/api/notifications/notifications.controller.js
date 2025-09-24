@@ -17,8 +17,8 @@ const getNotifications = async (req, res) => {
   }
 };
 
-// PATCH /api/notifications/:id/read
-const markAsRead = async (req, res) => {
+// DELETE /api/notifications/:id (now acts as markAsRead and delete)
+const markAsReadAndDelete = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.userId; // From JWT middleware
 
@@ -31,15 +31,14 @@ const markAsRead = async (req, res) => {
       return res.status(404).json({ message: 'Notification not found or not authorized' });
     }
 
-    const updatedNotification = await prisma.notification.update({
+    await prisma.notification.delete({
       where: { id },
-      data: { isRead: true },
     });
-    res.json(updatedNotification);
+    res.status(204).send(); // No content on successful deletion
   } catch (error) {
-    console.error(`Mark notification ${id} as read error:`, error);
+    console.error(`Mark notification ${id} as read and delete error:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-module.exports = { getNotifications, markAsRead };
+module.exports = { getNotifications, markAsReadAndDelete };
