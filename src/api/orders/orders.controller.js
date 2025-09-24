@@ -103,6 +103,7 @@ const createOrder = async (req, res) => {
           userId: pharmacist.id,
           message: `คำสั่งยาใหม่ ${newOrder.id} โดย ${newOrder.createdBy.fullName} รอการตรวจสอบ`,
           type: 'new_order',
+          status: newOrder.status, // Add status
           relatedId: newOrder.id,
         }
       });
@@ -153,6 +154,7 @@ const updateOrderStatus = async (req, res) => {
         userId: updatedOrder.createdById,
         message: notificationMessage,
         type: 'order_status',
+        status: updatedOrder.status, // Add status
         relatedId: updatedOrder.id,
       }
     });

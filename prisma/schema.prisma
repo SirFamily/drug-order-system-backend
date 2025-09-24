@@ -76,6 +76,7 @@ model Notification {
   userId      String
   message     String    @db.Text
   type        String    // e.g., "new_order", "order_status"
+  status      String?   // Status of the related order (e.g., PENDING, APPROVED, REJECTED)
   relatedId   String?   // e.g., orderId, to link back to the source
   isRead      Boolean   @default(false)
   readAt      DateTime? // Timestamp when notification was read
