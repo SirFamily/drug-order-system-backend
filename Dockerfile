@@ -12,6 +12,9 @@ COPY package*.json ./
 # Use npm ci for clean installs in CI/CD environments
 RUN npm ci
 
+# Generate Prisma Client
+RUN npx prisma generate
+
 # Copy the rest of the application code to the container
 COPY . .
 

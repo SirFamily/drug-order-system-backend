@@ -17,7 +17,7 @@ bash
 
   echo "Running Docker container..."
   docker run -p 5001:5001 \
-    -e DATABASE_URL="${DB_URL}" \
-    -e JWT_SECRET="${JWT_SECRET}" \
-    -e CORS_ORIGIN="${CORS_ORIGIN}" \
+    -e DATABASE_URL="mysql://root:448518@45.91.134.79:4001/drug_order_system" \
+    -e JWT_SECRET="time_is_money_123" \
+    -e CORS_ORIGIN="https://drug-order-system.vercel.app" \
     drug-order-system-backend:latest
