@@ -36,7 +36,7 @@ model Regimen {
 }
 
 model Order {
-  id             String       @id @default(cuid())
+  id             String       @id
   patient        Json
   cycle          String?
   totalCycles    String?      // Add totalCycles field

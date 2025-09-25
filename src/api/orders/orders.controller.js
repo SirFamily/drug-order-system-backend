@@ -2,6 +2,28 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { getIo } = require('../../../src/utils/socket'); // Import getIo
 
+// Helper function to generate a new order ID
+const generateOrderId = async () => {
+  const today = new Date();
+  const year = today.getFullYear().toString().slice(-2);
+  const month = (today.getMonth() + 1).toString().padStart(2, '0');
+  const day = today.getDate().toString().padStart(2, '0');
+  const datePrefix = `ORD-${year}${month}${day}`;
+
+  const lastOrder = await prisma.order.findFirst({
+    where: { id: { startsWith: datePrefix } },
+    orderBy: { id: 'desc' },
+  });
+
+  let nextNumber = 1;
+  if (lastOrder) {
+    const lastNumber = parseInt(lastOrder.id.split('-')[2], 10);
+    nextNumber = lastNumber + 1;
+  }
+
+  return `${datePrefix}-${nextNumber.toString().padStart(3, '0')}`;
+};
+
 // GET /api/orders
 const getAllOrders = async (req, res) => {
   try {
@@ -68,7 +90,10 @@ const createOrder = async (req, res) => {
 
     const { drugs, startDate, completionDate, ...restOfOtherData } = otherData;
 
+    const newOrderId = await generateOrderId(); // Generate the new order ID
+
     const dataToCreate = {
+      id: newOrderId, // Use the generated ID
       patient: patientData,
       regimenId,
       createdById,
