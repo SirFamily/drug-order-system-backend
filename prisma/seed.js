@@ -75,30 +75,56 @@ async function main() {
   console.log('Start seeding ...');
 
   // Seed Users
-  const hashedPasswordNurse = await bcrypt.hash('123', 10);
-  const hashedPasswordPharmacist = await bcrypt.hash('123', 10);
+const hashedPasswordNurse = await bcrypt.hash('123', 10);
+const hashedPasswordPharmacist = await bcrypt.hash('123', 10);
 
-  await prisma.user.upsert({
-    where: { username: 'somying_n' },
-    update: {},
-    create: {
-      username: 'a',
-      password: hashedPasswordNurse,
-      fullName: 'พยาบาล สมหญิง ใจดี',
-      role: 'NURSE'
-    }
-  });
+// ผู้ใช้ a (พยาบาล)
+await prisma.user.upsert({
+  where: { username: 'somying_n' },
+  update: {},
+  create: {
+    username: 'a',
+    password: hashedPasswordNurse,
+    fullName: 'พยาบาล สมหญิง ใจดี',
+    role: 'NURSE'
+  }
+});
 
-  await prisma.user.upsert({
-    where: { username: 'somsak_p' },
-    update: {},
-    create: {
-      username: 'b',
-      password: hashedPasswordPharmacist,
-      fullName: 'เภสัชกร สมศักดิ์ สุขใจ',
-      role: 'PHARMACIST'
-    }
-  });
+// ผู้ใช้ b (เภสัชกร)
+await prisma.user.upsert({
+  where: { username: 'somsak_p' },
+  update: {},
+  create: {
+    username: 'b',
+    password: hashedPasswordPharmacist,
+    fullName: 'เภสัชกร สมศักดิ์ สุขใจ',
+    role: 'PHARMACIST'
+  }
+});
+
+// เพิ่มผู้ใช้ c (พยาบาล)
+await prisma.user.upsert({
+  where: { username: 'c' },
+  update: {},
+  create: {
+    username: 'c',
+    password: hashedPasswordNurse, // ใช้รหัสผ่านเดียวกันกับพยาบาลคนอื่น
+    fullName: 'พยาบาล สมศรี ใจกว้าง', // เปลี่ยนชื่อตามต้องการ
+    role: 'NURSE'
+  }
+});
+
+// เพิ่มผู้ใช้ d (เภสัชกร)
+await prisma.user.upsert({
+  where: { username: 'd' },
+  update: {},
+  create: {
+    username: 'd',
+    password: hashedPasswordPharmacist, // ใช้รหัสผ่านเดียวกันกับเภสัชกรคนอื่น
+    fullName: 'เภสัชกร สมหมาย ทำงานดี', // เปลี่ยนชื่อตามต้องการ
+    role: 'PHARMACIST'
+  }
+});
 
   // Seed Regimens
   for (const regimen of regimens) {
