@@ -11,76 +11,49 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  username       String   @unique
-  password       String
-  fullName       String
-  role           Role
-  createdOrders  Order[]  @relation("CreatedOrders")
-  approvedOrders Order[]  @relation("ApprovedOrders")
-  notifications  Notification[] // Add inverse relation for Notification
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  fullName  String
+  orders    Order[]  // Orders created by this user
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Regimen {
-  id           String   @id
-  name         String
-  drugs        Json
-  instructions String?  @db.Text
-  sideEffects  Json
-  precautions  Json
-  orders       Order[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model Patient {
+  id        String   @id @default(cuid())
+  hn        String   @unique
+  fullName  String
+  an        String?
+  orders    Order[]  // Orders for this patient
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Drug {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Order {
-  id             String       @id
-  patient        Json
+  id             String    @id
+  patientId      String
+  patient        Patient   @relation(fields: [patientId], references: [id])
+  
+  createdById    String
+  createdBy      User      @relation(fields: [createdById], references: [id])
+
   cycle          String?
-  totalCycles    String?      // Add totalCycles field
+  totalCycles    String?
   startDate      DateTime?
   completionDate DateTime?
-  status         OrderStatus  @default(PENDING)
-  notes          String?      @db.Text
+  notes          String?   @db.Text
   attachments    Json?
-  drugs          Json?        // To store the actual drugs used in the order (edited or custom)
-  
-  regimenId      String
-  regimen        Regimen      @relation(fields: [regimenId], references: [id])
+  drugs          Json?     // Stores the array of drugs with dose and day
 
-  createdById    String
-  createdBy      User         @relation("CreatedOrders", fields: [createdById], references: [id])
-
-  approvedById   String?
-  approvedBy     User?        @relation("ApprovedOrders", fields: [approvedById], references: [id])
-
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-}
-
-enum Role {
-  NURSE
-  PHARMACIST
-}
-
-enum OrderStatus {
-  PENDING
-  REJECTED
-  COMPLETED
-}
-
-model Notification {
-  id          String    @id @default(cuid())
-  userId      String
-  message     String    @db.Text
-  type        String    // e.g., "new_order", "order_status"
-  status      String?   // Status of the related order (e.g., PENDING, APPROVED, REJECTED)
-  relatedId   String?   // e.g., orderId, to link back to the source
-  isRead      Boolean   @default(false)
-  readAt      DateTime? // Timestamp when notification was read
-  createdAt   DateTime  @default(now())
-
-  user        User      @relation(fields: [userId], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
