@@ -3,9 +3,8 @@ const {
   getAllOrders, 
   getOrderById, 
   createOrder, 
-  updateOrderStatus 
 } = require('./orders.controller');
-const { protect, authorize } = require('../../middleware/auth.middleware');
+const { protect } = require('../../middleware/auth.middleware');
 
 const upload = require('../../middleware/upload');
 
