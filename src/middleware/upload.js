@@ -1,40 +1,35 @@
 const multer = require('multer');
 const path = require('path');
 
-// Set up storage engine
+// Configure disk storage for uploads
 const storage = multer.diskStorage({
   destination: './public/uploads/',
-  filename: function(req, file, cb){
+  filename(req, file, cb) {
     const fileType = file.mimetype.startsWith('image') ? 'image' : 'pdf';
+    const timestamp = Date.now();
     const randomSuffix = Math.floor(100000 + Math.random() * 900000); // 6-digit random number
-    const uniqueSuffix = Date.now();
-    cb(null, `${fileType}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
+    cb(null, `${fileType}-${timestamp}-${randomSuffix}${path.extname(file.originalname)}`);
+  },
 });
 
-// Check File Type
-function checkFileType(file, cb){
-  // Allowed ext
+function checkFileType(file, cb) {
   const filetypes = /jpeg|jpg|png|gif|pdf/;
-  // Check ext
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  // Check mime
   const mimetype = filetypes.test(file.mimetype);
 
-  if(mimetype && extname){
-    return cb(null,true);
+  if (mimetype && extname) {
+    cb(null, true);
   } else {
     cb('Error: PDFs and Images Only!');
   }
 }
 
-// Init upload
 const upload = multer({
-  storage: storage,
+  storage,
   limits: { fileSize: 10000000 }, // 10MB limit
-  fileFilter: function(req, file, cb){
+  fileFilter(req, file, cb) {
     checkFileType(file, cb);
-  }
+  },
 });
 
 module.exports = upload;
