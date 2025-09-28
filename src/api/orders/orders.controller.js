@@ -44,9 +44,13 @@ const normaliseDates = (payload) => {
   const copy = { ...payload };
   if (copy.startDate) {
     copy.startDate = new Date(copy.startDate);
+  } else {
+    copy.startDate = null;
   }
   if (copy.completionDate) {
     copy.completionDate = new Date(copy.completionDate);
+  } else {
+    copy.completionDate = null;
   }
   return copy;
 };
