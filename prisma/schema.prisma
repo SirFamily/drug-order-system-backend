@@ -46,8 +46,6 @@ model Order {
   createdById    String
   createdBy      User      @relation(fields: [createdById], references: [id])
 
-  cycle          String?
-  totalCycles    String?
   startDate      DateTime?
   completionDate DateTime?
   notes          String?   @db.Text
