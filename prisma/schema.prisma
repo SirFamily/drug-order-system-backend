@@ -15,7 +15,9 @@ model User {
   username  String   @unique
   password  String
   fullName  String
-  orders    Order[]  // Orders created by this user
+  wardId    String
+  ward      Ward     @relation(fields: [wardId], references: [id])
+  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -25,7 +27,7 @@ model Patient {
   hn        String   @unique
   fullName  String
   an        String?
-  orders    Order[]  // Orders for this patient
+  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -41,16 +43,24 @@ model Order {
   id             String    @id
   patientId      String
   patient        Patient   @relation(fields: [patientId], references: [id])
-  
   createdById    String
   createdBy      User      @relation(fields: [createdById], references: [id])
-
+  wardId         String
+  ward           Ward      @relation(fields: [wardId], references: [id])
   startDate      DateTime?
   completionDate DateTime?
   notes          String?   @db.Text
   attachments    Json?
-  drugs          Json?     // Stores the array of drugs with dose and day
-
+  drugs          Json?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+}
+
+model Ward {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  users     User[]
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

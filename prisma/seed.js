@@ -48,6 +48,9 @@ const drugsToSeed = [
   }
 ];
 
+const wardsToSeed = [
+  { name: 'ตึกพิเศษอาคารมะเร็งชั้น 7' },
+];
 
 async function main() {
   console.log('Start seeding ...');
@@ -57,14 +60,28 @@ async function main() {
   await prisma.patient.deleteMany({});
   await prisma.drug.deleteMany({});
   await prisma.user.deleteMany({});
+  await prisma.ward.deleteMany({}); // Clear wards
+
+  // Seed Wards
+  const createdWards = [];
+  for (const wardData of wardsToSeed) {
+    const ward = await prisma.ward.create({
+      data: wardData,
+    });
+    createdWards.push(ward);
+    console.log(`Created ward: ${ward.name} (ID: ${ward.id})`);
+  }
 
   // Seed Users
   const hashedPasswordNurse = await bcrypt.hash('1234', 10);
+  const firstWardId = createdWards[0].id;
+
   await prisma.user.create({
     data: {
       username: 'nurse',
       password: hashedPasswordNurse,
-      fullName: 'พยาบาล สมหญิง ใจดี',
+      fullName: 'พยาบาล​วิชาชีพ​',
+      wardId: firstWardId, // Assign user to the first ward
     }
   });
 

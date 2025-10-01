@@ -14,6 +14,7 @@ const login = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { username },
+      include: { ward: true }, // Include ward information
     });
 
     if (!user) {
@@ -27,7 +28,7 @@ const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user.id, fullName: user.fullName },
+      { userId: user.id, fullName: user.fullName, wardId: user.wardId }, // Include wardId in token
       process.env.JWT_SECRET || 'your_default_secret_key',
       { expiresIn: process.env.JWT_EXPIRATION || '15d' }
     );
@@ -39,7 +40,8 @@ const login = async (req, res) => {
         id: user.id,
         fullName: user.fullName,
         username: user.username,
-        role: user.role
+        wardId: user.wardId,
+        wardName: user.ward.name, // Include wardName in user response
       }
     });
 

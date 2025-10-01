@@ -3,10 +3,24 @@ const prisma = new PrismaClient();
 
 // GET /api/patients
 const getAllPatients = async (req, res) => {
+  const userWardId = req.user?.wardId;
+
   try {
+    const whereClause = {};
+    if (userWardId) {
+      whereClause.orders = {
+        some: {
+          wardId: userWardId,
+        },
+      };
+    }
+
     const patients = await prisma.patient.findMany({
+      where: whereClause,
       include: {
-        orders: true,
+        orders: {
+          where: userWardId ? { wardId: userWardId } : {},
+        },
       },
     });
     res.json(patients);

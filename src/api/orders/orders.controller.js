@@ -116,13 +116,20 @@ const enrichOrdersWithDrugDetails = async (orders) => {
 
 const getAllOrders = async (req, res) => {
   const { patientId, latest } = req.query;
+  const userWardId = req.user?.wardId; // Get wardId from authenticated user
 
   try {
     let orders = [];
+    
+    // Base where clause for filtering by ward
+    const baseWhere = {};
+    if (userWardId) {
+      baseWhere.wardId = userWardId;
+    }
 
     if (patientId && latest === "true") {
       const latestOrder = await prisma.order.findFirst({
-        where: { patientId },
+        where: { ...baseWhere, patientId },
         orderBy: { createdAt: "desc" },
         include: {
           createdBy: { select: { fullName: true } },
@@ -131,7 +138,7 @@ const getAllOrders = async (req, res) => {
       });
       orders = latestOrder ? [latestOrder] : [];
     } else {
-      const where = patientId ? { patientId } : {};
+      const where = patientId ? { ...baseWhere, patientId } : baseWhere;
       orders = await prisma.order.findMany({
         where,
         include: {
@@ -161,6 +168,8 @@ const getAllOrders = async (req, res) => {
 
 const getOrderById = async (req, res) => {
   const { id } = req.params;
+  const userWardId = req.user?.wardId;
+
   try {
     const order = await prisma.order.findUnique({
       where: { id },
@@ -172,6 +181,11 @@ const getOrderById = async (req, res) => {
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Enforce ward-based access
+    if (userWardId && order.wardId !== userWardId) {
+      return res.status(403).json({ message: "Forbidden: You do not have access to this order." });
     }
 
     const [enrichedOrder] = await enrichOrdersWithDrugDetails([order]);
@@ -188,6 +202,11 @@ const getOrderById = async (req, res) => {
 
 const createOrder = async (req, res) => {
   try {
+    const userWardId = req.user?.wardId;
+    if (!userWardId) {
+      return res.status(403).json({ message: "User is not assigned to a ward." });
+    }
+
     const patientData = JSON.parse(req.body.patient);
     const drugsData = JSON.parse(req.body.drugs);
     const otherData = JSON.parse(req.body.otherData);
@@ -217,6 +236,7 @@ const createOrder = async (req, res) => {
       id: await generateOrderId(),
       patientId: patientRecord.id,
       createdById,
+      wardId: userWardId, // Automatically assign the user's ward
       drugs: mapDrugsPayload(drugsData),
       attachments: combinedAttachments,
       notes,
