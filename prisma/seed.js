@@ -185,37 +185,6 @@ const drugsToSeed = [
   }
 ];
 
-async function seedManyOrders() {
-  console.log('Seeding many orders...');
-  const nurse = await prisma.user.findUnique({ where: { username: 'nurse' } });
-  const drugs = await prisma.drug.findMany();
-
-  for (let i = 0; i < 15; i++) {
-    const patient = await prisma.patient.create({
-      data: {
-        hn: `HN${1000 + i}`,
-        fullName: `ผู้ป่วยทดสอบ ${i + 1}`,
-        an: `AN${2000 + i}`,
-      },
-    });
-
-    const orderDate = new Date();
-    orderDate.setDate(orderDate.getDate() - i); // Ensure unique date for each order
-
-    await prisma.order.create({
-      data: {
-        patientId: patient.id,
-        createdById: nurse.id,
-        startDate: orderDate,
-        completionDate: orderDate,
-        createdAt: orderDate, // Set createdAt to the same unique date
-        drugs: [ { drugId: drugs[i % drugs.length].id, dose: '100', day: '1' } ],
-        notes: `หมายเหตุสำหรับผู้ป่วย ${i + 1}`,
-      },
-    });
-  }
-  console.log('Finished seeding many orders.');
-}
 
 async function main() {
   console.log('Start seeding ...');
@@ -243,7 +212,6 @@ async function main() {
     });
   }
 
-  await seedManyOrders();
 
   console.log('Seeding finished.');
 }
