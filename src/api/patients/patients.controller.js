@@ -33,13 +33,31 @@ const getAllPatients = async (req, res) => {
 // GET /api/patients/:id
 const getPatientById = async (req, res) => {
   const { id } = req.params;
+  const userWardId = req.user?.wardId;
+
   try {
     const patient = await prisma.patient.findUnique({
       where: { id },
     });
+
     if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
+
+    // Security check: If user belongs to a ward, check if they have access to this patient
+    if (userWardId) {
+      const orderCount = await prisma.order.count({
+        where: {
+          patientId: id,
+          wardId: userWardId,
+        },
+      });
+
+      if (orderCount === 0) {
+        return res.status(403).json({ message: 'Forbidden: You do not have access to this patient.' });
+      }
+    }
+
     res.json(patient);
   } catch (error) {
     console.error(`Get patient ${id} error:`, error);
