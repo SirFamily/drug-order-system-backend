@@ -109,7 +109,6 @@ const enrichOrdersWithDrugDetails = async (orders) => {
       return {
         ...drug,
         name: drugInfo?.name ?? drug.name ?? "",
-        description: drugInfo?.description ?? "",
       };
     }),
   }));

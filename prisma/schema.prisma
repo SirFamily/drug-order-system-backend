@@ -33,7 +33,6 @@ model Patient {
 model Drug {
   id          String   @id @default(cuid())
   name        String   @unique
-  description String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
