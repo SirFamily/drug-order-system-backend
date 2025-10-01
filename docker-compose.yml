@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: drug-order-system-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      # Map the local uploads directory to the container's uploads directory
+      # This ensures that uploaded files persist even if the container is removed.
+      - /home/sirfamily/drug-order-system-backend/drug-order-system-backend/public/uploads:/usr/src/app/public/uploads
+    env_file:
+      # Load environment variables from the .env file
+      - .env
+    restart: unless-stopped
