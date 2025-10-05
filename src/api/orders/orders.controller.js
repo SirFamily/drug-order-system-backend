@@ -115,7 +115,7 @@ const enrichOrdersWithDrugDetails = async (orders) => {
 };
 
 const getAllOrders = async (req, res) => {
-  const { patientId, latest } = req.query;
+  const { patientId, latest, startDate, endDate } = req.query;
   const userWardId = req.user?.wardId; // Get wardId from authenticated user
 
   try {
@@ -139,6 +139,15 @@ const getAllOrders = async (req, res) => {
       orders = latestOrder ? [latestOrder] : [];
     } else {
       const where = patientId ? { ...baseWhere, patientId } : baseWhere;
+
+      // Add date range filtering if provided
+      if (startDate && endDate) {
+        where.updatedAt = {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        };
+      }
+
       orders = await prisma.order.findMany({
         where,
         include: {
