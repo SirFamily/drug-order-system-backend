@@ -4,25 +4,38 @@ const prisma = new PrismaClient();
 // GET /api/patients
 const getAllPatients = async (req, res) => {
   const userWardId = req.user?.wardId;
+  const { status } = req.query; // 'ACTIVE', 'COMPLETED', or undefined for default
 
   try {
     const whereClause = {};
+
+    // Filter by ward if the user has a wardId
     if (userWardId) {
-      whereClause.orders = {
-        some: {
-          wardId: userWardId,
-        },
-      };
+      whereClause.wardId = userWardId;
+    }
+
+    // Filter by status
+    if (status && (status === 'ACTIVE' || status === 'COMPLETED')) {
+      whereClause.status = status;
+    } else {
+      // Default to ACTIVE patients if no or invalid status is provided
+      whereClause.status = 'ACTIVE';
     }
 
     const patients = await prisma.patient.findMany({
       where: whereClause,
       include: {
         orders: {
-          where: userWardId ? { wardId: userWardId } : {},
+          orderBy: {
+            updatedAt: 'desc',
+          },
         },
       },
+      orderBy: {
+        updatedAt: 'desc',
+      }
     });
+
     res.json(patients);
   } catch (error) {
     console.error('Get all patients error:', error);
@@ -65,4 +78,19 @@ const getPatientById = async (req, res) => {
   }
 };
 
-module.exports = { getAllPatients, getPatientById };
+const completePatientStatus = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const updatedPatient = await prisma.patient.update({
+      where: { id },
+      data: { status: 'COMPLETED' },
+    });
+    res.json(updatedPatient);
+  } catch (error) {
+    console.error(`Error completing patient ${id}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+module.exports = { getAllPatients, getPatientById, completePatientStatus };

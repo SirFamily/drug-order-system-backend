@@ -22,14 +22,19 @@ const generateOrderId = async () => {
   return `${datePrefix}-${nextNumber.toString().padStart(3, "0")}`;
 };
 
-const ensurePatientRecord = async (patientData) => {
+const ensurePatientRecord = async (patientData, wardId) => {
   if (!patientData?.hn) {
     throw new Error("Patient HN is required");
   }
   return prisma.patient.upsert({
     where: { hn: patientData.hn },
     update: { fullName: patientData.fullName, an: patientData.an },
-    create: { hn: patientData.hn, fullName: patientData.fullName, an: patientData.an },
+    create: { 
+      hn: patientData.hn, 
+      fullName: patientData.fullName, 
+      an: patientData.an,
+      wardId: wardId, // Assign wardId on creation
+    },
   });
 };
 
@@ -223,11 +228,7 @@ const createOrder = async (req, res) => {
     const notes = req.body.notes;
     const existingAttachmentsData = JSON.parse(req.body.existingAttachments || "[]");
 
-    if (!patientData || !patientData.hn || !Array.isArray(drugsData) || !createdById) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    const patientRecord = await ensurePatientRecord(patientData);
+    const patientRecord = await ensurePatientRecord(patientData, userWardId);
 
     let newAttachments = [];
     if (req.files) {
@@ -269,6 +270,11 @@ const updateOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    const userWardId = req.user?.wardId;
+    if (!userWardId) {
+      return res.status(403).json({ message: "User is not assigned to a ward." });
+    }
+
     const patientData = JSON.parse(req.body.patient);
     const drugsData = JSON.parse(req.body.drugs);
     const otherData = JSON.parse(req.body.otherData);
@@ -280,7 +286,7 @@ const updateOrder = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const patientRecord = await ensurePatientRecord(patientData);
+    const patientRecord = await ensurePatientRecord(patientData, userWardId);
 
     let newAttachments = [];
     if (req.files) {
