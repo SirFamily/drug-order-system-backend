@@ -1,13 +1,13 @@
 const fs = require('fs/promises');
 const path = require('path');
-const { SHARED_IMAGE_DIR, ensureSharedImageDir } = require('./sharedImageStorage');
+const { SHARED_IMAGE_DIR, SHARED_PAGE_DIR, ensureSharedAssets } = require('./sharedImageStorage');
 
 const SHARE_TTL_DAYS = 15;
 const SHARE_TTL_MS = SHARE_TTL_DAYS * 24 * 60 * 60 * 1000;
 const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 async function removeExpiredSharedImages({ logger = console, now = Date.now() } = {}) {
-  await ensureSharedImageDir();
+  await ensureSharedAssets();
   const entries = await fs.readdir(SHARED_IMAGE_DIR, { withFileTypes: true });
 
   const removals = await Promise.all(
@@ -18,6 +18,11 @@ async function removeExpiredSharedImages({ logger = console, now = Date.now() } 
         const stats = await fs.stat(filePath);
         if (now - stats.mtimeMs > SHARE_TTL_MS) {
           await fs.unlink(filePath);
+          const pagePath = path.join(
+            SHARED_PAGE_DIR,
+            `${path.parse(entry.name).name}.html`
+          );
+          await fs.unlink(pagePath).catch(() => {});
           return entry.name;
         }
         return null;
