@@ -16,7 +16,7 @@ function resolveExtension(mimeType) {
 function buildSharePageHtml({ imageUrl, wardName, shareTime, patientCount }) {
   // This HTML is primarily for social media crawlers (like LINE, Facebook)
   // The meta refresh tag will redirect actual users to the image directly.
-  const title = wardName ? `รูปภาพจาก: ${wardName}` : "รูปภาพที่แชร์";
+  const title = wardName ? `คำสั่งจาก: ${wardName}` : "รูปภาพที่แชร์";
   
   let description = shareTime ? `แชร์เมื่อ: ${shareTime}` : "แตะเพื่อดูรูปภาพที่แชร์";
   if (patientCount) {
