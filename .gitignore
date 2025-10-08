@@ -11,7 +11,7 @@
 /dist
 
 /public/uploads
-
+/public/shared-images
 # Misc
 .DS_Store
 *.pem
