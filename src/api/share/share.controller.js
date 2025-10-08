@@ -14,46 +14,30 @@ function resolveExtension(mimeType) {
 }
 
 function buildSharePageHtml({ imageUrl }) {
+  // This HTML is primarily for social media crawlers (like LINE, Facebook)
+  // The meta refresh tag will redirect actual users to the image directly.
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="th">
   <head>
     <meta charset="utf-8" />
-    <title>Shared Image Preview</title>
-    <meta property="og:title" content="Shared Image" />
-    <meta property="og:description" content="Tap to view the shared image." />
+    <title>ดูรูปภาพ</title>
+
+    <!-- Open Graph Meta Tags for Social Media Previews -->
+    <meta property="og:title" content="รูปภาพที่แชร์" />
+    <meta property="og:description" content="แตะเพื่อดูรูปภาพที่แชร์" />
     <meta property="og:image" content="${imageUrl}" />
-    <meta property="og:type" content="article" />
+    <meta property="og:image:width" content="1024" />
+    <meta property="og:image:height" content="1024" /> 
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta http-equiv="refresh" content="5;url=${imageUrl}" />
-    <style>
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 2rem;
-        background: #0f172a;
-        color: #e2e8f0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      }
-      img {
-        max-width: 90vw;
-        max-height: 70vh;
-        border-radius: 14px;
-        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45);
-      }
-      a {
-        color: #38bdf8;
-        font-weight: 600;
-        text-decoration: none;
-      }
-    </style>
+
+    <!-- Immediate redirect for users -->
+    <meta http-equiv="refresh" content="0;url=${imageUrl}" />
   </head>
   <body>
-    <img src="${imageUrl}" alt="Shared preview" />
-    <a href="${imageUrl}">Open full image</a>
+    <p>กำลังเปลี่ยนเส้นทางไปยังรูปภาพ...</p>
   </body>
 </html>`;
 }

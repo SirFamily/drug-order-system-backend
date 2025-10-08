@@ -12,6 +12,7 @@
 
 /public/uploads
 /public/shared-images
+/public/shared-pages
 # Misc
 .DS_Store
 *.pem
