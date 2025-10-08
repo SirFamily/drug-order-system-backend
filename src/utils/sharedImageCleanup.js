@@ -39,16 +39,41 @@ async function removeExpiredSharedImages({ logger = console, now = Date.now() } 
 
 function startSharedImageCleanup(options = {}) {
   const logger = options.logger || console;
+  const CLEANUP_HOUR = 23; // 23:00 (11 PM)
+  const CLEANUP_MINUTE = 50; // 50 minutes
 
-  removeExpiredSharedImages({ logger }).catch((err) => {
-    logger.error?.('Initial shared image cleanup failed', err);
-  });
-
-  setInterval(() => {
+  const runCleanup = () => {
     removeExpiredSharedImages({ logger }).catch((err) => {
       logger.error?.('Scheduled shared image cleanup failed', err);
     });
-  }, CLEANUP_INTERVAL_MS);
+  };
+
+  const scheduleNextCleanup = () => {
+    const now = new Date();
+    let nextCleanup = new Date();
+
+    nextCleanup.setHours(CLEANUP_HOUR, CLEANUP_MINUTE, 0, 0);
+
+    if (now > nextCleanup) {
+      // If it's already past today's cleanup time, schedule for tomorrow
+      nextCleanup.setDate(nextCleanup.getDate() + 1);
+    }
+
+    const delay = nextCleanup.getTime() - now.getTime();
+
+    logger.info(`Next shared image cleanup scheduled at: ${nextCleanup.toLocaleString('th-TH')}`);
+
+    setTimeout(() => {
+      // Run the cleanup now
+      runCleanup();
+      // And then schedule it to run every 24 hours
+      setInterval(runCleanup, CLEANUP_INTERVAL_MS);
+    }, delay);
+  };
+
+  // Run initial cleanup on startup, then start the precise schedule
+  runCleanup();
+  scheduleNextCleanup();
 }
 
 module.exports = {
