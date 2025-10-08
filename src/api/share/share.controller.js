@@ -13,9 +13,16 @@ function resolveExtension(mimeType) {
   return '.png';
 }
 
-function buildSharePageHtml({ imageUrl }) {
+function buildSharePageHtml({ imageUrl, wardName, shareTime, patientCount }) {
   // This HTML is primarily for social media crawlers (like LINE, Facebook)
   // The meta refresh tag will redirect actual users to the image directly.
+  const title = wardName ? `รูปภาพจาก: ${wardName}` : "รูปภาพที่แชร์";
+  
+  let description = shareTime ? `แชร์เมื่อ: ${shareTime}` : "แตะเพื่อดูรูปภาพที่แชร์";
+  if (patientCount) {
+    description += ` • รวม ${patientCount} คน`;
+  }
+
   return `<!DOCTYPE html>
 <html lang="th">
   <head>
@@ -23,8 +30,8 @@ function buildSharePageHtml({ imageUrl }) {
     <title>ดูรูปภาพ</title>
 
     <!-- Open Graph Meta Tags for Social Media Previews -->
-    <meta property="og:title" content="รูปภาพที่แชร์" />
-    <meta property="og:description" content="แตะเพื่อดูรูปภาพที่แชร์" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
     <meta property="og:image" content="${imageUrl}" />
     <meta property="og:image:width" content="1024" />
     <meta property="og:image:height" content="1024" /> 
@@ -44,7 +51,7 @@ function buildSharePageHtml({ imageUrl }) {
 
 exports.saveSharedImage = async (req, res) => {
   try {
-    const { imageBase64, fileName } = req.body || {};
+    const { imageBase64, fileName, wardName, shareTime, patientCount } = req.body || {};
 
     if (!imageBase64 || typeof imageBase64 !== 'string') {
       return res.status(400).json({ message: 'imageBase64 is required' });
@@ -73,7 +80,12 @@ exports.saveSharedImage = async (req, res) => {
     const relativePageUrl = `/public/shared-pages/${pageFileName}`;
     const absolutePageUrl = `${req.protocol}://${req.get('host')}${relativePageUrl}`;
 
-    const html = buildSharePageHtml({ imageUrl: absoluteImageUrl });
+    const html = buildSharePageHtml({ 
+      imageUrl: absoluteImageUrl, 
+      wardName, 
+      shareTime, 
+      patientCount 
+    });
     await fs.writeFile(pageFilePath, html, { encoding: 'utf8' });
 
     return res.status(201).json({
