@@ -93,4 +93,19 @@ const completePatientStatus = async (req, res) => {
   }
 };
 
-module.exports = { getAllPatients, getPatientById, completePatientStatus };
+const activatePatientStatus = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const updatedPatient = await prisma.patient.update({
+      where: { id },
+      data: { status: 'ACTIVE' },
+    });
+    res.json(updatedPatient);
+  } catch (error) {
+    console.error(`Error activating patient ${id}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+module.exports = { getAllPatients, getPatientById, completePatientStatus, activatePatientStatus };
