@@ -30,7 +30,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, fullName: user.fullName, wardId: user.wardId }, // Include wardId in token
       process.env.JWT_SECRET || 'your_default_secret_key',
-      { expiresIn: process.env.JWT_EXPIRATION || '15d' }
+      // { expiresIn: process.env.JWT_EXPIRATION || '15d' }
     );
 
     res.json({ 
