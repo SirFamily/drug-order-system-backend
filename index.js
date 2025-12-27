@@ -1,10 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const { PrismaClient } = require('@prisma/client');
 
 const { startSharedImageCleanup } = require('./src/utils/sharedImageCleanup');
 
 dotenv.config();
+
+const prisma = new PrismaClient();
 
 const app = express();
 
@@ -37,6 +40,16 @@ app.get('/', (req, res) => {
 });
 
 startSharedImageCleanup();
+
+// Database Connection
+prisma.$connect()
+  .then(() => {
+    console.log('✅ Database connected successfully!');
+  })
+  .catch((error) => {
+    console.error('❌ Database connection failed:', error.message);
+    process.exit(1);
+  });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
