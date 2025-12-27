@@ -4,13 +4,14 @@ services:
   backend:
     build: .
     container_name: drug-order-system-backend
+    working_dir: /usr/src/app
     ports:
       - "5000:5000"
     volumes:
-      # Map the local uploads directory to the container's uploads directory
-      # This ensures that uploaded files persist even if the container is removed.
-      - /home/sirfamily/drug-order-system-backend/drug-order-system-backend/public/uploads:/usr/src/app/public/uploads
+      # Mounts the project directory from your machine into the container.
+      # Any local file changes will be immediately reflected in the container.
+      - .:/usr/src/app
     env_file:
-      # Load environment variables from the .env file
       - .env
     restart: unless-stopped
+    command: npm start
