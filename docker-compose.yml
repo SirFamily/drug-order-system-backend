@@ -4,7 +4,7 @@ services:
     build: .
     container_name: drug-order-system-backend
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       # The following volume mounts the project directory from your machine into the container.
       # This is useful for development, as any local file changes will be immediately reflected.
