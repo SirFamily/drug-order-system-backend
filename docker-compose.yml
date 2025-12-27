@@ -4,14 +4,15 @@ services:
   backend:
     build: .
     container_name: drug-order-system-backend
-    working_dir: /usr/src/app
     ports:
       - "5000:5000"
     volumes:
-      # Mounts the project directory from your machine into the container.
-      # Any local file changes will be immediately reflected in the container.
+      # The following volume mounts the project directory from your machine into the container.
+      # This is useful for development, as any local file changes will be immediately reflected.
+      # For a production deployment, you might want to remove this to use the static files from the image.
       - .:/usr/src/app
+      # Keep node_modules from the container, rather than mounting over it
+      - /usr/src/app/node_modules
     env_file:
       - .env
     restart: unless-stopped
-    command: npm start
