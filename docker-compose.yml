@@ -1,19 +1,19 @@
 version: '3.8'
-
 services:
   backend:
     build: .
-    container_name: patient-screening-app
+    container_name: drug-order-system-backend
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
+      # The following volume mounts the project directory from your machine into the container.
+      # This is useful for development, as any local file changes will be immediately reflected.
+      # For a production deployment, you might want to remove this to use the static files from the image.
       - .:/usr/src/app
+      # Keep node_modules from the container, rather than mounting over it
       - /usr/src/app/node_modules
     env_file:
       - .env
-    environment:
-      - PORT=5000
-    command: npm run dev
     restart: unless-stopped
     networks:
       - fam-db-network
@@ -21,3 +21,4 @@ services:
 networks:
   fam-db-network:
     external: true
+    name: fam-db-network
