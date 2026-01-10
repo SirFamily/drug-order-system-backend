@@ -43,6 +43,8 @@ const mapDrugsPayload = (drugsData = []) =>
     drugId: drug.drugId,
     dose: drug.dose,
     day: drug.day,
+    // Conditionally add the name property if it's an 'other' drug
+    ...(drug.drugId === 'other' && { name: drug.name }),
   }));
 
 const normaliseDates = (payload) => {
